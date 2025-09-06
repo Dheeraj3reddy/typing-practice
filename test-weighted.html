@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Weighted Classification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        .word-list {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+            word-wrap: break-word;
+        }
+        .stats {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weighted Classification Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <p>Top 200: 45%, Top 1000: 30%, Top 10000: 15%, Mixed Case: 5%, Special: 5%</p>
+        <button onclick="generateTest()">Generate Test Words</button>
+        <button onclick="generateStats()">Show Distribution Stats</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Generated Words</h2>
+        <div id="wordList" class="word-list">Click "Generate Test Words" to see weighted word selection</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Distribution Statistics</h2>
+        <div id="stats" class="stats">Click "Show Distribution Stats" to see word distribution</div>
+    </div>
+
+    <script type="module">
+        // Import data arrays (simulated for this test)
+        const top200words = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me'];
+        
+        const top1000words = ['people', 'time', 'way', 'could', 'first', 'water', 'been', 'call', 'who', 'its', 'now', 'find', 'long', 'down', 'day', 'did', 'get', 'come', 'made', 'may', 'part', 'over', 'new', 'sound', 'take', 'only', 'little', 'work', 'know', 'place', 'year', 'live', 'me', 'back', 'give', 'most', 'very', 'after', 'thing', 'our', 'just', 'name', 'good', 'sentence', 'man', 'think', 'say', 'great', 'where', 'help'];
+        
+        const top10000words = ['example', 'between', 'important', 'children', 'school', 'never', 'until', 'form', 'food', 'keep', 'large', 'every', 'start', 'thought', 'turn', 'place', 'number', 'spell', 'air', 'away', 'animal', 'house', 'point', 'page', 'letter', 'mother', 'answer', 'found', 'study', 'still', 'learn', 'should', 'America', 'world', 'high', 'every', 'near', 'add', 'food', 'between', 'own', 'below', 'country', 'plant', 'last', 'school', 'father', 'keep', 'tree', 'never'];
+        
+        const mixedCaseWords = ['Apple', 'Book', 'Cat', 'Dog', 'about', 'before', 'could', 'during', 'Amazing', 'Beautiful', 'incredible', 'joyful', 'Adventure', 'Business', 'innovation', 'journey'];
+        
+        const numbersAndSymbols = ['123', '456', '789', 'test@email.com', 'user123', 'pass!word', '$100', '50%', '#hashtag', '@username', 'file.txt', 'www.site.com', '2023', 'v1.0', 'ID-456'];
+
+        // Test classification with weighted probabilities
+        const testClassification = {
+            top200: { weight: 45, words: top200words },
+            top1000: { weight: 30, words: top1000words },
+            top10000: { weight: 15, words: top10000words },
+            mixedCase: { weight: 5, words: mixedCaseWords },
+            special: { weight: 5, words: numbersAndSymbols }
+        };
+
+        // Get a single random word based on weighted probabilities
+        function getWeightedRandomWord() {
+            const random = Math.random() * 100;
+            let cumulativeWeight = 0;
+            
+            const categories = Object.entries(testClassification);
+            
+            for (const [category, config] of categories) {
+                cumulativeWeight += config.weight;
+                if (random <= cumulativeWeight) {
+                    const randomIndex = Math.floor(Math.random() * config.words.length);
+                    return config.words[randomIndex];
+                }
+            }
+            
+            // Fallback to top200 if something goes wrong
+            const randomIndex = Math.floor(Math.random() * top200words.length);
+            return top200words[randomIndex];
+        }
+
+        // Generate a sequence of weighted words for typing test
+        function generateWeightedWordSequence(wordCount = 50) {
+            const words = [];
+            
+            for (let i = 0; i < wordCount; i++) {
+                words.push(getWeightedRandomWord());
+            }
+            
+            return words;
+        }
+
+        // Get statistics about word distribution
+        function getWordDistributionStats(words) {
+            const stats = {
+                top200: 0,
+                top1000: 0,
+                top10000: 0,
+                mixedCase: 0,
+                special: 0,
+                unknown: 0
+            };
+            
+            words.forEach(word => {
+                if (top200words.includes(word)) {
+                    stats.top200++;
+                } else if (top1000words.includes(word)) {
+                    stats.top1000++;
+                } else if (top10000words.includes(word)) {
+                    stats.top10000++;
+                } else if (mixedCaseWords.includes(word)) {
+                    stats.mixedCase++;
+                } else if (numbersAndSymbols.includes(word)) {
+                    stats.special++;
+                } else {
+                    stats.unknown++;
+                }
+            });
+            
+            return stats;
+        }
+
+        // Global functions for buttons
+        window.generateTest = function() {
+            const words = generateWeightedWordSequence(100);
+            document.getElementById('wordList').textContent = words.join(' ');
+        }
+
+        window.generateStats = function() {
+            const words = generateWeightedWordSequence(1000);
+            const stats = getWordDistributionStats(words);
+            const total = Object.values(stats).reduce((a, b) => a + b, 0);
+            
+            const statsHtml = `
+                <strong>Distribution from 1000 generated words:</strong><br>
+                Top 200: ${stats.top200} (${((stats.top200/total)*100).toFixed(1)}%)<br>
+                Top 1000: ${stats.top1000} (${((stats.top1000/total)*100).toFixed(1)}%)<br>
+                Top 10000: ${stats.top10000} (${((stats.top10000/total)*100).toFixed(1)}%)<br>
+                Mixed Case: ${stats.mixedCase} (${((stats.mixedCase/total)*100).toFixed(1)}%)<br>
+                Special: ${stats.special} (${((stats.special/total)*100).toFixed(1)}%)<br>
+                Unknown: ${stats.unknown} (${((stats.unknown/total)*100).toFixed(1)}%)<br>
+                <br>
+                <strong>Expected:</strong> Top 200: 45%, Top 1000: 30%, Top 10000: 15%, Mixed Case: 5%, Special: 5%
+            `;
+            
+            document.getElementById('stats').innerHTML = statsHtml;
+        }
+    </script>
+</body>
+</html>
