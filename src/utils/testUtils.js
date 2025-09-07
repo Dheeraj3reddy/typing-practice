@@ -2,11 +2,11 @@
 import { generateWeightedWordSequence, getWordDistributionStats } from '../data/weightedWords';
 
 export const calculateWPM = (typedText, timeInSeconds) => {
-  // Standard WPM calculation: (characters typed / 5) / minutes
-  // This accounts for all characters typed, not just complete words
-  const charactersTyped = typedText.length;
+  // Standard WPM calculation: (characters typed excluding spaces / 5) / minutes
+  // This accounts for all characters typed, excluding spaces
+  const charactersTyped = typedText.replace(/\s/g, '').length; // Exclude spaces
   const minutes = timeInSeconds / 60;
-  const wordsTyped = charactersTyped / 5; // Standard: 5 characters = 1 word
+  const wordsTyped = charactersTyped / 5; // Standard: 5 characters (excluding spaces) = 1 word
   return Math.round(wordsTyped / minutes) || 0;
 };
 

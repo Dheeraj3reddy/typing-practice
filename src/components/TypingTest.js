@@ -180,18 +180,15 @@ const TypingTest = () => {
     };
   }, [isTestActive, testMode, timeLeft]);
 
-  // Calculate statistics
+  // Calculate statistics (accuracy only during test, WPM calculated at end)
   const calculateStats = useCallback(() => {
     if (!startTime) return;
     
-    const timeElapsed = (Date.now() - startTime) / 1000 / 60; // in minutes
-    const wordsTyped = correctChars / 5; // Standard: 5 characters = 1 word
-    const currentWpm = Math.round(wordsTyped / timeElapsed) || 0;
+    // Only calculate accuracy during the test, WPM will be calculated at the end
     const currentAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
     
-    setWpm(currentWpm);
     setAccuracy(currentAccuracy);
-  }, [startTime, correctChars, totalChars]);
+  }, [correctChars, totalChars]);
 
   // Update statistics in real-time
   useEffect(() => {
@@ -289,16 +286,22 @@ const TypingTest = () => {
   const completeTest = useCallback(() => {
     setIsTestActive(false);
     setIsTestComplete(true);
-    setEndTime(Date.now());
-  }, []);
+    // Use the exact time limit instead of current time to avoid timing discrepancies
+    setEndTime(startTime + (timeLimit * 1000));
+  }, [startTime, timeLimit]);
 
   // Handle completion logic when completed state changes
   useEffect(() => {
     if (isTestComplete && !endTime) return;
     
     if (isTestComplete && endTime) {
-      const finalWpm = calculateWPM(userInput, (endTime - startTime) / 1000);
+      // Use the actual time limit for time-based tests, actual elapsed time for word-based tests
+      const actualTimeInSeconds = testMode === 'time' ? timeLimit : (endTime - startTime) / 1000;
+      const finalWpm = calculateWPM(userInput, actualTimeInSeconds);
       const finalAccuracy = calculateAccuracy(allErrors, testText);
+      
+      // Update the WPM state for display
+      setWpm(finalWpm);
       
       // Save test results with profile integration
       saveTestResults({
@@ -548,7 +551,7 @@ const TypingTest = () => {
               <div className="result-label">acc</div>
             </div>
             <div className="result-stat">
-              <div className="result-value">{Math.round((endTime - startTime) / 1000)}s</div>
+              <div className="result-value">{testMode === 'time' ? timeLimit : Math.round((endTime - startTime) / 1000)}s</div>
               <div className="result-label">time</div>
             </div>
             <div className="result-stat">
